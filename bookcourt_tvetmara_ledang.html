@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookCourt TVETMARA Ledang - Badminton Booking System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 1);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased text-slate-100 bg-slate-900 selection:bg-brand-500 selection:text-white">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Brand Name -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="window.switchTab('booking')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+            <i class="fa-solid font-bold fa-shuttlecock text-slate-900 text-xl"></i>
+          </div>
+          <div>
+            <h1 class="font-heading font-extrabold text-lg sm:text-xl tracking-tight text-white leading-none">
+              BookCourt <span class="text-brand-400">Ledang</span>
+            </h1>
+            <p class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+              TVETMARA LEDANG
+            </p>
+          </div>
+        </div>
+
+        <!-- Firebase Multi-Device Sync Badge & Refresh Controls -->
+        <div class="hidden lg:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
+          <span id="sync-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="sync-status-text" class="text-slate-300 font-medium">Connecting Firebase...</span>
+          <button onclick="window.manualSync()" title="Force Refresh Data" class="ml-1 text-slate-400 hover:text-brand-400 transition">
+            <i id="sync-refresh-icon" class="fa-solid fa-rotate text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Desktop Navigation Tabs -->
+        <nav class="hidden md:flex items-center space-x-1">
+          <button id="nav-booking" onclick="window.switchTab('booking')" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-brand-400 bg-slate-800/80">
+            <i class="fa-solid fa-calendar-check mr-2"></i>Book Court
+          </button>
+          <button id="nav-status" onclick="window.switchTab('status')" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800/50">
+            <i class="fa-solid fa-magnifying-glass mr-2"></i>Check Status
+          </button>
+          <button id="nav-admin" onclick="window.switchTab('admin')" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800/50">
+            <i class="fa-solid fa-user-shield mr-2"></i>Admin Portal
+          </button>
+        </nav>
+
+        <!-- Mobile Menu Toggle Button -->
+        <div class="md:hidden flex items-center space-x-2">
+          <button onclick="window.manualSync()" class="p-2 rounded-lg text-slate-400 hover:text-brand-400 bg-slate-800">
+            <i class="fa-solid fa-rotate text-sm"></i>
+          </button>
+          <button id="mobile-menu-btn" onclick="window.toggleMobileMenu()" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+            <i class="fa-solid fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden md:hidden border-b border-slate-800 bg-slate-900/95 px-4 pt-2 pb-4 space-y-2">
+      <div class="flex items-center justify-between px-3 py-2 bg-slate-800/50 rounded-lg text-xs border border-slate-700/50">
+        <div class="flex items-center space-x-2">
+          <span id="mobile-sync-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="mobile-sync-text" class="text-slate-300">Firebase Syncing...</span>
+        </div>
+        <button onclick="window.manualSync()" class="text-brand-400 text-xs font-semibold">
+          Sync Now
+        </button>
+      </div>
+
+      <button onclick="window.switchTab('booking'); window.toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-brand-400 bg-slate-800">
+        <i class="fa-solid fa-calendar-check w-6"></i>Book Court
+      </button>
+      <button onclick="window.switchTab('status'); window.toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-slate-300 hover:bg-slate-800">
+        <i class="fa-solid fa-magnifying-glass w-6"></i>Check Status
+      </button>
+      <button onclick="window.switchTab('admin'); window.toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-slate-300 hover:bg-slate-800">
+        <i class="fa-solid fa-user-shield w-6"></i>Admin Portal
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    
+    <!-- SECTION 1: BOOKING TAB -->
+    <section id="tab-booking" class="space-y-8">
+      
+      <!-- Banner / Announcement -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-800 via-slate-800 to-brand-950/40 p-6 sm:p-8 border border-slate-700/60 shadow-xl">
+        <div class="relative z-10 max-w-2xl">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20 mb-3">
+            <i class="fa-solid fa-fire text-[10px]"></i> Firebase Firestore Realtime Sync Active
+          </span>
+          <h2 class="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            Reserve Your Badminton Court
+          </h2>
+          <p class="mt-2 text-slate-300 text-sm sm:text-base leading-relaxed">
+            Select your court, pick a date, and submit your booking. Bookings saved on phone are immediately visible on iPads and Laptops via Firebase Firestore.
+          </p>
+        </div>
+      </div>
+
+      <!-- Booking Interactive Grid Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Side: Interactive Hall Layout & Selection -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-slate-800/80 rounded-2xl p-5 sm:p-6 border border-slate-700/60 shadow-lg">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 class="font-heading text-lg font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-map-location-dot text-brand-400"></i>
+                  TVETMARA Hall Layout
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Click on an available court to select it</p>
+              </div>
+
+              <!-- Date Picker Input -->
+              <div class="flex items-center space-x-2">
+                <label for="booking-date" class="text-xs font-semibold text-slate-300 whitespace-nowrap">
+                  Date:
+                </label>
+                <input type="date" id="booking-date" onchange="window.renderCourtAvailability()"
+                  class="bg-slate-900 border border-slate-700 text-slate-100 text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              </div>
+            </div>
+
+            <!-- Court Status Legend -->
+            <div class="flex flex-wrap items-center gap-4 text-xs font-medium mb-6 p-3 bg-slate-900/60 rounded-xl border border-slate-700/40">
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded-md bg-emerald-500/20 border-2 border-emerald-500 inline-block"></span>
+                <span class="text-slate-300">Available</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded-md bg-rose-500/20 border-2 border-rose-500 inline-block"></span>
+                <span class="text-slate-300">Booked / Pending</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded-md bg-amber-500/20 border-2 border-amber-500 inline-block"></span>
+                <span class="text-slate-300">Maintenance</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded-md bg-brand-500 inline-block"></span>
+                <span class="text-slate-300">Selected</span>
+              </div>
+            </div>
+
+            <!-- TVETMARA Hall Court Map Representation -->
+            <div class="bg-slate-900/80 rounded-2xl p-4 sm:p-6 border border-slate-700/80 relative space-y-4">
+              
+              <!-- Top Layout: STAGE -->
+              <div class="bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-widest text-center py-2.5 rounded-lg border border-slate-700/80 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-masks-theater text-amber-400"></i>
+                STAGE
+              </div>
+
+              <!-- Main Hall Court Grid (3 Columns) -->
+              <div class="grid grid-cols-3 gap-3 sm:gap-4">
+                
+                <!-- Column 1: Court A & Takraw Court -->
+                <div class="space-y-3 sm:space-y-4">
+                  <!-- Court A -->
+                  <div id="court-card-A" onclick="window.selectCourt('A')"
+                    class="court-card cursor-pointer group relative bg-slate-800/90 hover:bg-slate-800 rounded-xl p-3 sm:p-4 border-2 transition-all duration-200 text-center flex flex-col justify-between h-32 sm:h-36">
+                    <div class="flex justify-between items-start">
+                      <span class="font-heading text-xs sm:text-sm font-bold text-slate-200">Court A</span>
+                      <span id="badge-A" class="text-[10px] px-2 py-0.5 rounded-full font-semibold">...</span>
+                    </div>
+                    <div class="my-auto">
+                      <i class="fa-solid fa-shuttlecock text-2xl text-slate-500 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <span id="status-text-A" class="text-[11px] font-medium text-slate-400">Checking...</span>
+                  </div>
+
+                  <!-- Takraw Court (Under Court A) -->
+                  <div class="bg-slate-800/40 rounded-xl p-3 sm:p-4 border border-dashed border-slate-700 text-center flex flex-col justify-between h-28 sm:h-32 opacity-75">
+                    <div class="flex justify-between items-start">
+                      <span class="font-heading text-xs font-semibold text-slate-400">Sepak Takraw</span>
+                      <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 font-medium">Non-Badminton</span>
+                    </div>
+                    <div class="my-auto">
+                      <i class="fa-solid fa-volleyball text-xl text-slate-600"></i>
+                    </div>
+                    <span class="text-[10px] text-slate-500">Takraw Court</span>
+                  </div>
+                </div>
+
+                <!-- Column 2: Court B & Court D -->
+                <div class="space-y-3 sm:space-y-4">
+                  <!-- Court B -->
+                  <div id="court-card-B" onclick="window.selectCourt('B')"
+                    class="court-card cursor-pointer group relative bg-slate-800/90 hover:bg-slate-800 rounded-xl p-3 sm:p-4 border-2 transition-all duration-200 text-center flex flex-col justify-between h-32 sm:h-36">
+                    <div class="flex justify-between items-start">
+                      <span class="font-heading text-xs sm:text-sm font-bold text-slate-200">Court B</span>
+                      <span id="badge-B" class="text-[10px] px-2 py-0.5 rounded-full font-semibold">...</span>
+                    </div>
+                    <div class="my-auto">
+                      <i class="fa-solid fa-shuttlecock text-2xl text-slate-500 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <span id="status-text-B" class="text-[11px] font-medium text-slate-400">Checking...</span>
+                  </div>
+
+                  <!-- Court D (Under Court B) -->
+                  <div id="court-card-D" onclick="window.selectCourt('D')"
+                    class="court-card cursor-pointer group relative bg-slate-800/90 hover:bg-slate-800 rounded-xl p-3 sm:p-4 border-2 transition-all duration-200 text-center flex flex-col justify-between h-32 sm:h-36">
+                    <div class="flex justify-between items-start">
+                      <span class="font-heading text-xs sm:text-sm font-bold text-slate-200">Court D</span>
+                      <span id="badge-D" class="text-[10px] px-2 py-0.5 rounded-full font-semibold">...</span>
+                    </div>
+                    <div class="my-auto">
+                      <i class="fa-solid fa-shuttlecock text-2xl text-slate-500 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <span id="status-text-D" class="text-[11px] font-medium text-slate-400">Checking...</span>
+                  </div>
+                </div>
+
+                <!-- Column 3: Court C & Court E -->
+                <div class="space-y-3 sm:space-y-4">
+                  <!-- Court C -->
+                  <div id="court-card-C" onclick="window.selectCourt('C')"
+                    class="court-card cursor-pointer group relative bg-slate-800/90 hover:bg-slate-800 rounded-xl p-3 sm:p-4 border-2 transition-all duration-200 text-center flex flex-col justify-between h-32 sm:h-36">
+                    <div class="flex justify-between items-start">
+                      <span class="font-heading text-xs sm:text-sm font-bold text-slate-200">Court C</span>
+                      <span id="badge-C" class="text-[10px] px-2 py-0.5 rounded-full font-semibold">...</span>
+                    </div>
+                    <div class="my-auto">
+                      <i class="fa-solid fa-shuttlecock text-2xl text-slate-500 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <span id="status-text-C" class="text-[11px] font-medium text-slate-400">Checking...</span>
+                  </div>
+
+                  <!-- Court E (Under Court C) -->
+                  <div id="court-card-E" onclick="window.selectCourt('E')"
+                    class="court-card cursor-pointer group relative bg-slate-800/90 hover:bg-slate-800 rounded-xl p-3 sm:p-4 border-2 transition-all duration-200 text-center flex flex-col justify-between h-32 sm:h-36">
+                    <div class="flex justify-between items-start">
+                      <span class="font-heading text-xs sm:text-sm font-bold text-slate-200">Court E</span>
+                      <span id="badge-E" class="text-[10px] px-2 py-0.5 rounded-full font-semibold">...</span>
+                    </div>
+                    <div class="my-auto">
+                      <i class="fa-solid fa-shuttlecock text-2xl text-slate-500 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <span id="status-text-E" class="text-[11px] font-medium text-slate-400">Checking...</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Bottom Layout: MAIN ENTRANCE -->
+              <div class="bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-widest text-center py-2.5 rounded-lg border border-slate-700/80 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-door-open text-emerald-400"></i>
+                MAIN ENTRANCE
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right Side: Booking Submission Form -->
+        <div class="lg:col-span-5">
+          <div class="bg-slate-800/80 rounded-2xl p-5 sm:p-6 border border-slate-700/60 shadow-lg sticky top-24">
+            <h3 class="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-pen-to-square text-brand-400"></i>
+              Booking Details
+            </h3>
+
+            <form id="booking-form" onsubmit="window.handleBookingSubmit(event)" class="space-y-4">
+              
+              <!-- Selected Court Display -->
+              <div class="p-3.5 bg-slate-900/80 rounded-xl border border-slate-700/70 flex items-center justify-between">
+                <div>
+                  <span class="text-xs text-slate-400 block font-medium">Selected Court</span>
+                  <span id="form-selected-court-text" class="font-heading font-bold text-brand-400 text-base">
+                    Court A
+                  </span>
+                </div>
+                <input type="hidden" id="selected-court-input" value="A">
+                <div class="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center font-bold">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+              </div>
+
+              <!-- Full Name Input -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="student-name">
+                  Full Name <span class="text-rose-400">*</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                    <i class="fa-solid fa-user text-sm"></i>
+                  </span>
+                  <input type="text" id="student-name" required placeholder="e.g. Ahmad Daniel Bin Razak"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:outline-none transition">
+                </div>
+              </div>
+
+              <!-- Gmail Address Input -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="student-gmail">
+                  Gmail Address <span class="text-rose-400">*</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                    <i class="fa-solid fa-envelope text-sm"></i>
+                  </span>
+                  <input type="email" id="student-gmail" required placeholder="student@gmail.com"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:outline-none transition">
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">Confirmation and approval notices will be sent to this Gmail.</p>
+              </div>
+
+              <!-- Time Slot Option (Read-Only / Fixed: 08:00 PM - 11:00 PM) -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="time-slot">
+                  Time Slot <span class="text-rose-400">*</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-brand-400">
+                    <i class="fa-solid fa-clock text-sm"></i>
+                  </span>
+                  <select id="time-slot" disabled
+                    class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2.5 text-sm text-brand-400 font-semibold appearance-none cursor-not-allowed">
+                    <option value="08:00 PM - 11:00 PM" selected>08:00 PM - 11:00 PM</option>
+                  </select>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1">Official evening session slot at TVETMARA Hall.</p>
+              </div>
+
+              <!-- Submit Request Button -->
+              <button type="submit" id="submit-btn"
+                class="w-full mt-2 bg-gradient-to-r from-brand-600 to-emerald-500 hover:from-brand-500 hover:to-emerald-400 text-slate-950 font-heading font-bold py-3 px-4 rounded-xl shadow-lg shadow-brand-600/20 hover:shadow-brand-500/30 transition duration-200 flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Submit Booking Request</span>
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2: CHECK STATUS TAB -->
+    <section id="tab-status" class="hidden space-y-6">
+      <div class="max-w-3xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="text-center space-y-2">
+          <h2 class="font-heading text-2xl sm:text-3xl font-bold text-white">Check Booking Status</h2>
+          <p class="text-slate-400 text-sm">Enter your Gmail address or Reference ID to view your court booking status</p>
+        </div>
+
+        <!-- Search Bar Card -->
+        <div class="bg-slate-800/80 rounded-2xl p-4 sm:p-6 border border-slate-700/60 shadow-lg">
+          <form onsubmit="window.handleStatusSearch(event)" class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-grow">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+              </span>
+              <input type="text" id="status-search-input" placeholder="e.g. student@gmail.com or BK-1001" required
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <button type="submit"
+              class="bg-brand-500 hover:bg-brand-400 text-slate-950 font-heading font-bold px-6 py-3 rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+              <span>Search</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Search Results Display Area -->
+        <div id="status-results" class="space-y-4">
+          <!-- Populated by JavaScript -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 3: ADMIN PORTAL TAB -->
+    <section id="tab-admin" class="hidden space-y-6">
+      
+      <!-- Password Protection Gateway Overlay/Card -->
+      <div id="admin-login-card" class="max-w-md mx-auto bg-slate-800/90 rounded-2xl p-6 sm:p-8 border border-slate-700 shadow-2xl space-y-6">
+        <div class="text-center space-y-2">
+          <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mx-auto flex items-center justify-center text-2xl mb-2">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <h3 class="font-heading text-xl font-bold text-white">Admin Authentication</h3>
+          <p class="text-xs text-slate-400">MPP Exco Sukan TVETMARA Ledang Portal Access</p>
+        </div>
+
+        <form onsubmit="window.handleAdminLogin(event)" class="space-y-4">
+          <div>
+            <label for="admin-pass" class="block text-xs font-semibold text-slate-300 mb-1.5">Enter Admin Password</label>
+            <input type="password" id="admin-pass" placeholder="••••••••••••" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          </div>
+          <button type="submit"
+            class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-heading font-bold py-2.5 rounded-xl transition shadow-lg">
+            Unlock Admin Panel
+          </button>
+        </form>
+      </div>
+
+      <!-- Authenticated Admin View Area -->
+      <div id="admin-dashboard" class="hidden space-y-6">
+        
+        <!-- Top Admin Header Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/80 p-5 rounded-2xl border border-slate-700">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-1">
+              <i class="fa-solid fa-shield-halved"></i> MPP EXCO SUKAN 26/27
+            </span>
+            <h2 class="font-heading text-2xl font-bold text-white">Court Management Dashboard</h2>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <button onclick="window.exportToCSV()" class="px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold transition flex items-center gap-2">
+              <i class="fa-solid fa-download"></i> Export Data CSV
+            </button>
+            <button onclick="window.adminLogout()" class="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/20 transition flex items-center gap-2">
+              <i class="fa-solid fa-right-from-bracket"></i> Lock Portal
+            </button>
+          </div>
+        </div>
+
+        <!-- Metrics Overview Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-slate-800/70 rounded-xl p-4 border border-slate-700/60">
+            <span class="text-xs text-slate-400 font-medium">Total Bookings</span>
+            <p id="stat-total" class="text-2xl font-heading font-extrabold text-white mt-1">0</p>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-4 border border-amber-500/20">
+            <span class="text-xs text-amber-400 font-medium">Pending Requests</span>
+            <p id="stat-pending" class="text-2xl font-heading font-extrabold text-amber-400 mt-1">0</p>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-4 border border-emerald-500/20">
+            <span class="text-xs text-emerald-400 font-medium">Approved Bookings</span>
+            <p id="stat-approved" class="text-2xl font-heading font-extrabold text-emerald-400 mt-1">0</p>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-4 border border-rose-500/20">
+            <span class="text-xs text-rose-400 font-medium">Rejected Requests</span>
+            <p id="stat-rejected" class="text-2xl font-heading font-extrabold text-rose-400 mt-1">0</p>
+          </div>
+        </div>
+
+        <!-- Court Maintenance Controls Toggle Panel -->
+        <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/60 space-y-3">
+          <h3 class="font-heading font-bold text-sm text-slate-200 uppercase tracking-wider">
+            Court Maintenance Controls
+          </h3>
+          <p class="text-xs text-slate-400">Toggle court maintenance mode to prevent student bookings across all devices in real-time.</p>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+            <!-- Court A Toggle Button -->
+            <button id="maint-btn-A" onclick="window.toggleMaintenance('A')"
+              class="p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300">
+              <span>Court A</span>
+              <span id="maint-status-A" class="text-[10px] text-emerald-400 font-normal">Active</span>
+            </button>
+            <!-- Court B Toggle Button -->
+            <button id="maint-btn-B" onclick="window.toggleMaintenance('B')"
+              class="p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300">
+              <span>Court B</span>
+              <span id="maint-status-B" class="text-[10px] text-emerald-400 font-normal">Active</span>
+            </button>
+            <!-- Court C Toggle Button -->
+            <button id="maint-btn-C" onclick="window.toggleMaintenance('C')"
+              class="p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300">
+              <span>Court C</span>
+              <span id="maint-status-C" class="text-[10px] text-emerald-400 font-normal">Active</span>
+            </button>
+            <!-- Court D Toggle Button -->
+            <button id="maint-btn-D" onclick="window.toggleMaintenance('D')"
+              class="p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300">
+              <span>Court D</span>
+              <span id="maint-status-D" class="text-[10px] text-emerald-400 font-normal">Active</span>
+            </button>
+            <!-- Court E Toggle Button -->
+            <button id="maint-btn-E" onclick="window.toggleMaintenance('E')"
+              class="p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300">
+              <span>Court E</span>
+              <span id="maint-status-E" class="text-[10px] text-emerald-400 font-normal">Active</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Booking Requests Table -->
+        <div class="bg-slate-800/80 rounded-2xl border border-slate-700/60 overflow-hidden shadow-xl">
+          <div class="p-4 border-b border-slate-700 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <h3 class="font-heading font-bold text-base text-white">Student Booking Requests</h3>
+            
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-slate-400">Filter:</span>
+              <select id="admin-filter" onchange="window.renderAdminTable()"
+                class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none">
+                <option value="ALL">All Statuses</option>
+                <option value="PENDING">Pending Approval</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-700">
+                <tr>
+                  <th class="px-4 py-3">Ref ID</th>
+                  <th class="px-4 py-3">Student Name</th>
+                  <th class="px-4 py-3">Gmail Address</th>
+                  <th class="px-4 py-3">Court</th>
+                  <th class="px-4 py-3">Booking Date</th>
+                  <th class="px-4 py-3">Time Slot</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-table-body" class="divide-y divide-slate-700/50">
+                <!-- Populated dynamically by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="custom-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+      <div id="modal-icon-container" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl"></div>
+      <div>
+        <h4 id="modal-title" class="font-heading font-bold text-lg text-white">Confirm Action</h4>
+        <p id="modal-message" class="text-xs text-slate-300 mt-1 leading-relaxed">Are you sure you want to execute this operation?</p>
+      </div>
+      <div class="flex justify-end space-x-3 pt-2">
+        <button id="modal-btn-cancel" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold">
+          Cancel
+        </button>
+        <button id="modal-btn-confirm" class="px-4 py-2 rounded-xl text-xs font-semibold text-white">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Logic with Firebase Firestore Realtime Sync -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // App ID and environment configuration safely extracted
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bookcourt-tvetmara-ledang';
+
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+
+    const ADMIN_PASSWORD_HASH = 'mppexcosukan26/27';
+
+    let maintenanceState = {
+      A: false,
+      B: false,
+      C: false,
+      D: false,
+      E: false
+    };
+
+    let bookings = [];
+    let selectedCourt = 'A';
+    let isAdminLoggedIn = false;
+
+    function getTodayFormatted(offsetDays) {
+      const d = new Date();
+      if (offsetDays) {
+        d.setDate(d.getDate() + offsetDays);
+      }
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return year + '-' + month + '-' + day;
+    }
+
+    async function initFirebaseSync() {
+      updateSyncStatus(false, 'Connecting Firebase...');
+
+      let firebaseConfig = null;
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try {
+          firebaseConfig = JSON.parse(__firebase_config);
+        } catch (e) {
+          console.error("Error parsing __firebase_config:", e);
+        }
+      }
+
+      if (firebaseConfig && firebaseConfig.apiKey) {
+        try {
+          const app = initializeApp(firebaseConfig);
+          auth = getAuth(app);
+          db = getFirestore(app);
+
+          // Authenticate safely prior to querying Firestore
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            const userCred = await signInWithCustomToken(auth, __initial_auth_token);
+            currentUser = userCred.user;
+          } else {
+            const userCred = await signInAnonymously(auth);
+            currentUser = userCred.user;
+          }
+
+          console.log("Authenticated as Firebase User:", currentUser.uid);
+          updateSyncStatus(true, 'Firebase Live Connected');
+
+          // Attach Realtime Listeners
+          setupFirestoreListeners();
+          return;
+        } catch (err) {
+          console.error("Firebase Auth or Firestore Initialization failed:", err);
+          updateSyncStatus(false, 'Firebase Init Failed');
+        }
+      } else {
+        updateSyncStatus(true, 'Local Storage Mode');
+        loadLocalStorageData();
+      }
+    }
+
+    function updateSyncStatus(connected, message) {
+      const dot = document.getElementById('sync-status-dot');
+      const text = document.getElementById('sync-status-text');
+      const mDot = document.getElementById('mobile-sync-dot');
+      const mText = document.getElementById('mobile-sync-text');
+
+      if (connected) {
+        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+        if (text) text.textContent = message || 'Firebase Live';
+        if (mDot) mDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        if (mText) mText.textContent = 'Firebase Live';
+      } else {
+        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+        if (text) text.textContent = message || 'Connecting...';
+        if (mDot) mDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        if (mText) mText.textContent = 'Connecting...';
+      }
+    }
+
+    function setupFirestoreListeners() {
+      if (!db || !currentUser) return;
+
+      // Rule 1 strictly followed: /artifacts/{appId}/public/data/bookings
+      const bookingsCol = collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
+
+      // Rule 2 strictly followed: Simple collection listener, sorting in memory
+      onSnapshot(bookingsCol, (snapshot) => {
+        const list = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // In-memory sort by creation time
+        list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        bookings = list;
+
+        window.renderCourtAvailability();
+        if (isAdminLoggedIn) window.renderAdminTable();
+
+        const searchInput = document.getElementById('status-search-input');
+        if (searchInput && searchInput.value.trim()) {
+          window.handleStatusSearch();
+        }
+        
+        updateSyncStatus(true, 'Firebase Realtime Synced');
+      }, (error) => {
+        console.error("Firestore Bookings Sync Error:", error);
+        updateSyncStatus(false, 'Sync Error');
+      });
+
+      // Maintenance document listener: /artifacts/{appId}/public/data/settings/court_maintenance
+      const maintDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'court_maintenance');
+      onSnapshot(maintDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          maintenanceState = Object.assign({ A: false, B: false, C: false, D: false, E: false }, docSnap.data());
+          if (window.updateMaintenanceUI) window.updateMaintenanceUI();
+          window.renderCourtAvailability();
+        }
+      }, (error) => {
+        console.error("Firestore Maintenance Sync Error:", error);
+      });
+    }
+
+    function loadLocalStorageData() {
+      const localData = localStorage.getItem('tvetmara_bookcourt_data');
+      if (localData) {
+        try {
+          const parsed = JSON.parse(localData);
+          if (Array.isArray(parsed.bookings)) bookings = parsed.bookings;
+          if (parsed.maintenanceState) maintenanceState = parsed.maintenanceState;
+        } catch (e) {}
+      }
+      window.renderCourtAvailability();
+    }
+
+    function saveLocalStorageData() {
+      localStorage.setItem('tvetmara_bookcourt_data', JSON.stringify({
+        bookings: bookings,
+        maintenanceState: maintenanceState
+      }));
+    }
+
+    window.manualSync = function() {
+      const icon = document.getElementById('sync-refresh-icon');
+      if (icon) icon.classList.add('fa-spin');
+      
+      if (db && currentUser) {
+        setupFirestoreListeners();
+      } else {
+        loadLocalStorageData();
+      }
+
+      setTimeout(() => {
+        if (icon) icon.classList.remove('fa-spin');
+        window.showToast('Realtime data refreshed with Firebase!', 'info');
+      }, 500);
+    };
+
+    window.switchTab = function (tabName) {
+      const tabs = ['booking', 'status', 'admin'];
+      for (let i = 0; i < tabs.length; i++) {
+        const t = tabs[i];
+        const el = document.getElementById('tab-' + t);
+        const navEl = document.getElementById('nav-' + t);
+
+        if (t === tabName) {
+          if (el) el.classList.remove('hidden');
+          if (navEl) {
+            navEl.className = 'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-brand-400 bg-slate-800/80';
+          }
+        } else {
+          if (el) el.classList.add('hidden');
+          if (navEl) {
+            navEl.className = 'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800/50';
+          }
+        }
+      }
+
+      if (tabName === 'booking') {
+        window.renderCourtAvailability();
+      } else if (tabName === 'admin' && isAdminLoggedIn) {
+        window.renderAdminTable();
+      }
+    };
+
+    window.toggleMobileMenu = function () {
+      const menu = document.getElementById('mobile-menu');
+      if (menu) {
+        menu.classList.toggle('hidden');
+      }
+    };
+
+    window.renderCourtAvailability = function () {
+      const dateInput = document.getElementById('booking-date');
+      if (!dateInput) return;
+
+      const selectedDate = dateInput.value;
+      const courtKeys = ['A', 'B', 'C', 'D', 'E'];
+
+      for (let i = 0; i < courtKeys.length; i++) {
+        const c = courtKeys[i];
+        const card = document.getElementById('court-card-' + c);
+        const badge = document.getElementById('badge-' + c);
+        const statusText = document.getElementById('status-text-' + c);
+
+        if (!card || !badge || !statusText) continue;
+
+        const isUnderMaintenance = maintenanceState[c];
+
+        const isBooked = bookings.some(function (b) {
+          return b.court === c && b.date === selectedDate && (b.status === 'APPROVED' || b.status === 'PENDING');
+        });
+
+        card.className = 'court-card cursor-pointer group relative rounded-xl p-3 sm:p-4 border-2 transition-all duration-200 text-center flex flex-col justify-between h-32 sm:h-36 ';
+
+        if (c === selectedCourt) {
+          card.className += 'bg-brand-950/50 border-brand-500 shadow-lg shadow-brand-500/10 ring-2 ring-brand-500/30';
+          badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-semibold bg-brand-500 text-slate-950';
+          badge.textContent = 'Selected';
+          statusText.textContent = 'Current Choice';
+          statusText.className = 'text-[11px] font-semibold text-brand-400';
+        } else if (isUnderMaintenance) {
+          card.className += 'bg-amber-950/20 border-amber-500/50 cursor-not-allowed opacity-80';
+          badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30';
+          badge.textContent = 'Maint.';
+          statusText.textContent = 'Under Repair';
+          statusText.className = 'text-[11px] font-medium text-amber-400';
+        } else if (isBooked) {
+          card.className += 'bg-rose-950/20 border-rose-500/50 cursor-not-allowed opacity-90';
+          badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30';
+          badge.textContent = 'Booked';
+          statusText.textContent = 'Unavailable';
+          statusText.className = 'text-[11px] font-medium text-rose-400';
+        } else {
+          card.className += 'bg-slate-800/90 hover:bg-slate-800 border-emerald-500/40 hover:border-emerald-400';
+          badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+          badge.textContent = 'Open';
+          statusText.textContent = 'Click to Select';
+          statusText.className = 'text-[11px] font-medium text-slate-400 group-hover:text-slate-200';
+        }
+      }
+    };
+
+    window.selectCourt = function (courtLetter) {
+      const dateInput = document.getElementById('booking-date');
+      const selectedDate = dateInput ? dateInput.value : getTodayFormatted(0);
+
+      if (maintenanceState[courtLetter]) {
+        window.showToast('Court ' + courtLetter + ' is currently under maintenance.', 'warning');
+        return;
+      }
+
+      const isBooked = bookings.some(function (b) {
+        return b.court === courtLetter && b.date === selectedDate && (b.status === 'APPROVED' || b.status === 'PENDING');
+      });
+
+      if (isBooked) {
+        window.showToast('Court ' + courtLetter + ' is already reserved for ' + selectedDate + '.', 'error');
+        return;
+      }
+
+      selectedCourt = courtLetter;
+      const courtTextEl = document.getElementById('form-selected-court-text');
+      const courtInputEl = document.getElementById('selected-court-input');
+
+      if (courtTextEl) courtTextEl.textContent = 'Court ' + courtLetter;
+      if (courtInputEl) courtInputEl.value = courtLetter;
+
+      window.renderCourtAvailability();
+    };
+
+    window.handleBookingSubmit = async function (event) {
+      if (event) event.preventDefault();
+
+      const nameInput = document.getElementById('student-name');
+      const gmailInput = document.getElementById('student-gmail');
+      const dateInput = document.getElementById('booking-date');
+      const timeSlot = '08:00 PM - 11:00 PM';
+
+      if (!nameInput || !gmailInput || !dateInput) return;
+
+      const name = nameInput.value.trim();
+      const gmail = gmailInput.value.trim();
+      const date = dateInput.value;
+
+      if (!gmail.toLowerCase().endsWith('@gmail.com')) {
+        window.showToast('Please provide a valid Gmail address ending with @gmail.com', 'error');
+        return;
+      }
+
+      const doubleBooked = bookings.some(function (b) {
+        return b.court === selectedCourt && b.date === date && (b.status === 'APPROVED' || b.status === 'PENDING');
+      });
+
+      if (doubleBooked) {
+        window.showToast('Court ' + selectedCourt + ' is already reserved on ' + date + '!', 'error');
+        return;
+      }
+
+      const refId = 'BK-' + Math.floor(1000 + Math.random() * 9000);
+
+      const newBooking = {
+        id: refId,
+        name: name,
+        gmail: gmail,
+        court: selectedCourt,
+        date: date,
+        timeSlot: timeSlot,
+        status: 'PENDING',
+        createdAt: new Date().toISOString()
+      };
+
+      if (db && currentUser) {
+        try {
+          // Rule 1: /artifacts/{appId}/public/data/bookings/{refId}
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', refId);
+          await setDoc(docRef, newBooking);
+          window.showToast('Booking submitted & saved to Firebase! Ref: ' + refId, 'success');
+        } catch (err) {
+          console.error("Firebase Write Error:", err);
+          window.showToast('Failed to save to Firebase: ' + err.message, 'error');
+          return;
+        }
+      } else {
+        bookings.unshift(newBooking);
+        saveLocalStorageData();
+        window.showToast('Booking submitted locally! Ref: ' + refId, 'success');
+      }
+
+      nameInput.value = '';
+      gmailInput.value = '';
+
+      window.renderCourtAvailability();
+
+      setTimeout(function () {
+        window.switchTab('status');
+        const searchInput = document.getElementById('status-search-input');
+        if (searchInput) {
+          searchInput.value = refId;
+          window.handleStatusSearch();
+        }
+      }, 800);
+    };
+
+    window.handleStatusSearch = function (event) {
+      if (event) event.preventDefault();
+
+      const searchInput = document.getElementById('status-search-input');
+      const resultsContainer = document.getElementById('status-results');
+
+      if (!searchInput || !resultsContainer) return;
+
+      const query = searchInput.value.trim().toLowerCase();
+      if (!query) return;
+
+      const matched = bookings.filter(function (b) {
+        return (b.id && b.id.toLowerCase() === query) || 
+               (b.gmail && b.gmail.toLowerCase() === query) || 
+               (b.name && b.name.toLowerCase().indexOf(query) !== -1);
+      });
+
+      if (matched.length === 0) {
+        resultsContainer.innerHTML = [
+          '<div class="bg-slate-800/80 rounded-2xl p-8 border border-slate-700/60 text-center space-y-3">',
+          '  <div class="w-12 h-12 bg-slate-700/50 text-slate-400 rounded-xl mx-auto flex items-center justify-center text-xl">',
+          '    <i class="fa-solid fa-folder-open"></i>',
+          '  </div>',
+          '  <h4 class="font-heading font-bold text-white text-base">No Booking Found</h4>',
+          '  <p class="text-xs text-slate-400">No records matching "' + query + '". Please check your Reference ID or Gmail.</p>',
+          '</div>'
+        ].join('\n');
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < matched.length; i++) {
+        const b = matched[i];
+        let badgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+        let iconClass = 'fa-clock text-amber-400';
+
+        if (b.status === 'APPROVED') {
+          badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+          iconClass = 'fa-circle-check text-emerald-400';
+        } else if (b.status === 'REJECTED') {
+          badgeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/30';
+          iconClass = 'fa-circle-xmark text-rose-400';
+        }
+
+        html += [
+          '<div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/60 shadow-md space-y-4">',
+          '  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-700/50">',
+          '    <div>',
+          '      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ref Number</span>',
+          '      <h4 class="font-heading font-extrabold text-lg text-white">' + b.id + '</h4>',
+          '    </div>',
+          '    <span class="px-3 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1.5 ' + badgeClass + '">',
+          '      <i class="fa-solid ' + iconClass + '"></i> ' + b.status,
+          '    </span>',
+          '  </div>',
+          '  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">',
+          '    <div><span class="text-slate-400 block">Student Name</span><span class="font-semibold text-slate-200">' + b.name + '</span></div>',
+          '    <div><span class="text-slate-400 block">Court</span><span class="font-bold text-brand-400">Court ' + b.court + '</span></div>',
+          '    <div><span class="text-slate-400 block">Date</span><span class="font-semibold text-slate-200">' + b.date + '</span></div>',
+          '    <div><span class="text-slate-400 block">Time Slot</span><span class="font-semibold text-slate-200">' + b.timeSlot + '</span></div>',
+          '  </div>',
+          '  <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700/40 text-[11px] text-slate-300 flex items-center gap-2">',
+          '    <i class="fa-solid fa-envelope text-brand-400"></i>',
+          '    <span>Status updates are dispatched to <strong>' + b.gmail + '</strong></span>',
+          '  </div>',
+          '</div>'
+        ].join('\n');
+      }
+
+      resultsContainer.innerHTML = html;
+    };
+
+    window.handleAdminLogin = function (event) {
+      if (event) event.preventDefault();
+      const passInput = document.getElementById('admin-pass');
+      if (!passInput) return;
+
+      if (passInput.value === ADMIN_PASSWORD_HASH) {
+        isAdminLoggedIn = true;
+        passInput.value = '';
+        document.getElementById('admin-login-card').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        window.showToast('Welcome Exco Sukan TVETMARA Ledang Admin!', 'success');
+        window.renderAdminTable();
+      } else {
+        window.showToast('Invalid Password. Access Denied.', 'error');
+      }
+    };
+
+    window.adminLogout = function () {
+      isAdminLoggedIn = false;
+      document.getElementById('admin-login-card').classList.remove('hidden');
+      document.getElementById('admin-dashboard').classList.add('hidden');
+      window.showToast('Logged out of Admin Portal.', 'info');
+    };
+
+    window.toggleMaintenance = async function (courtLetter) {
+      maintenanceState[courtLetter] = !maintenanceState[courtLetter];
+
+      if (db && currentUser) {
+        try {
+          const maintDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'court_maintenance');
+          await setDoc(maintDocRef, maintenanceState, { merge: true });
+        } catch (err) {
+          console.error("Firestore Maintenance Write Error:", err);
+        }
+      } else {
+        saveLocalStorageData();
+      }
+
+      window.updateMaintenanceUI();
+      window.renderCourtAvailability();
+      window.showToast('Court ' + courtLetter + ' maintenance status updated across all devices.', 'info');
+    };
+
+    window.updateMaintenanceUI = function () {
+      const courts = ['A', 'B', 'C', 'D', 'E'];
+      for (let i = 0; i < courts.length; i++) {
+        const c = courts[i];
+        const btn = document.getElementById('maint-btn-' + c);
+        const statusEl = document.getElementById('maint-status-' + c);
+
+        if (btn && statusEl) {
+          if (maintenanceState[c]) {
+            btn.className = 'p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1.5 bg-amber-950/40 border-amber-500 text-amber-400';
+            statusEl.textContent = 'Maintenance';
+            statusEl.className = 'text-[10px] text-amber-400 font-bold';
+          } else {
+            btn.className = 'p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500';
+            statusEl.textContent = 'Active';
+            statusEl.className = 'text-[10px] text-emerald-400 font-normal';
+          }
+        }
+      }
+    };
+
+    window.renderAdminTable = function () {
+      if (!isAdminLoggedIn) return;
+
+      const filterSelect = document.getElementById('admin-filter');
+      const filterVal = filterSelect ? filterSelect.value : 'ALL';
+      const tbody = document.getElementById('admin-table-body');
+
+      if (!tbody) return;
+
+      const filtered = bookings.filter(function (b) {
+        if (filterVal === 'ALL') return true;
+        return b.status === filterVal;
+      });
+
+      document.getElementById('stat-total').textContent = bookings.length;
+      document.getElementById('stat-pending').textContent = bookings.filter(function (b) { return b.status === 'PENDING'; }).length;
+      document.getElementById('stat-approved').textContent = bookings.filter(function (b) { return b.status === 'APPROVED'; }).length;
+      document.getElementById('stat-rejected').textContent = bookings.filter(function (b) { return b.status === 'REJECTED'; }).length;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">No booking requests found.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < filtered.length; i++) {
+        const b = filtered[i];
+        let statusBadge = '';
+        if (b.status === 'PENDING') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-semibold border border-amber-500/20">Pending</span>';
+        } else if (b.status === 'APPROVED') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">Approved</span>';
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-400 font-semibold border border-rose-500/20">Rejected</span>';
+        }
+
+        html += [
+          '<tr class="hover:bg-slate-800/40 transition">',
+          '  <td class="px-4 py-3 font-mono font-bold text-white">' + b.id + '</td>',
+          '  <td class="px-4 py-3 font-medium text-slate-200">' + b.name + '</td>',
+          '  <td class="px-4 py-3 text-slate-400">' + b.gmail + '</td>',
+          '  <td class="px-4 py-3 font-bold text-brand-400">Court ' + b.court + '</td>',
+          '  <td class="px-4 py-3 text-slate-300">' + b.date + '</td>',
+          '  <td class="px-4 py-3 text-slate-300">' + b.timeSlot + '</td>',
+          '  <td class="px-4 py-3">' + statusBadge + '</td>',
+          '  <td class="px-4 py-3 text-right space-x-1">',
+          '    <button onclick="window.updateStatus(\'' + b.id + '\', \'APPROVED\')" title="Approve Booking" class="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition"><i class="fa-solid fa-check"></i></button>',
+          '    <button onclick="window.updateStatus(\'' + b.id + '\', \'REJECTED\')" title="Reject Booking" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition"><i class="fa-solid fa-xmark"></i></button>',
+          '    <button onclick="window.confirmDelete(\'' + b.id + '\')" title="Delete Record" class="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-400 transition"><i class="fa-solid fa-trash"></i></button>',
+          '  </td>',
+          '</tr>'
+        ].join('\n');
+      }
+
+      tbody.innerHTML = html;
+      window.updateMaintenanceUI();
+    };
+
+    window.updateStatus = async function (bookingId, newStatus) {
+      const b = bookings.find(item => item.id === bookingId);
+      if (b) {
+        b.status = newStatus;
+
+        if (db && currentUser) {
+          try {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId);
+            await setDoc(docRef, { status: newStatus }, { merge: true });
+            window.showToast('Booking ' + bookingId + ' marked as ' + newStatus + ' in Firebase.', 'success');
+          } catch (err) {
+            console.error("Firestore Update Error:", err);
+          }
+        } else {
+          saveLocalStorageData();
+          window.showToast('Booking ' + bookingId + ' marked as ' + newStatus + '.', 'success');
+        }
+
+        window.renderAdminTable();
+        window.renderCourtAvailability();
+      }
+    };
+
+    window.confirmDelete = function (bookingId) {
+      window.showModal(
+        'Delete Booking Record',
+        'Are you sure you want to permanently delete record ' + bookingId + '?',
+        'danger',
+        async function () {
+          if (db && currentUser) {
+            try {
+              const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId);
+              await deleteDoc(docRef);
+              window.showToast('Record deleted from Firebase across all devices.', 'info');
+            } catch (err) {
+              console.error("Firestore Delete Error:", err);
+            }
+          } else {
+            bookings = bookings.filter(function (b) { return b.id !== bookingId; });
+            saveLocalStorageData();
+            window.showToast('Record deleted locally.', 'info');
+          }
+
+          window.renderAdminTable();
+          window.renderCourtAvailability();
+        }
+      );
+    };
+
+    window.exportToCSV = function () {
+      if (bookings.length === 0) {
+        window.showToast('No booking records to export.', 'warning');
+        return;
+      }
+
+      let csvContent = 'data:text/csv;charset=utf-8,ID,Name,Gmail,Court,Date,TimeSlot,Status\n';
+      for (let i = 0; i < bookings.length; i++) {
+        const b = bookings[i];
+        csvContent += [b.id, '"' + b.name + '"', b.gmail, b.court, b.date, '"' + b.timeSlot + '"', b.status].join(',') + '\n';
+      }
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'TVETMARA_Court_Bookings.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.showToast('Exported CSV successfully!', 'success');
+    };
+
+    window.showToast = function (message, type) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      let colorClasses = 'bg-slate-800 border-slate-700 text-slate-200';
+      let icon = 'fa-circle-info text-blue-400';
+
+      if (type === 'success') {
+        colorClasses = 'bg-slate-900 border-emerald-500/40 text-emerald-300';
+        icon = 'fa-circle-check text-emerald-400';
+      } else if (type === 'error') {
+        colorClasses = 'bg-slate-900 border-rose-500/40 text-rose-300';
+        icon = 'fa-circle-xmark text-rose-400';
+      } else if (type === 'warning') {
+        colorClasses = 'bg-slate-900 border-amber-500/40 text-amber-300';
+        icon = 'fa-triangle-exclamation text-amber-400';
+      }
+
+      toast.className = 'pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold max-w-md transition-all duration-300 transform translate-y-2 opacity-0 ' + colorClasses;
+      toast.innerHTML = '<i class="fa-solid ' + icon + ' text-base"></i><span>' + message + '</span>';
+
+      container.appendChild(toast);
+
+      setTimeout(function () {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(function () {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(function () {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }, 3500);
+    };
+
+    window.showModal = function (title, message, theme, onConfirm) {
+      const modal = document.getElementById('custom-modal');
+      const titleEl = document.getElementById('modal-title');
+      const msgEl = document.getElementById('modal-message');
+      const confirmBtn = document.getElementById('modal-btn-confirm');
+      const cancelBtn = document.getElementById('modal-btn-cancel');
+      const iconContainer = document.getElementById('modal-icon-container');
+
+      if (!modal || !titleEl || !msgEl || !confirmBtn || !cancelBtn) return;
+
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+
+      if (theme === 'danger') {
+        iconContainer.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        iconContainer.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+        confirmBtn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition';
+      } else {
+        iconContainer.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-brand-500/10 text-brand-400 border border-brand-500/20';
+        iconContainer.innerHTML = '<i class="fa-solid fa-circle-question"></i>';
+        confirmBtn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-400 text-slate-950 transition';
+      }
+
+      modal.classList.remove('hidden');
+
+      const close = function () {
+        modal.classList.add('hidden');
+        confirmBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      confirmBtn.onclick = function () {
+        close();
+        if (typeof onConfirm === 'function') onConfirm();
+      };
+
+      cancelBtn.onclick = close;
+    };
+
+    window.onload = function () {
+      const dateInput = document.getElementById('booking-date');
+      if (dateInput) {
+        const today = getTodayFormatted(0);
+        dateInput.value = today;
+        dateInput.min = today;
+      }
+
+      initFirebaseSync();
+      window.renderCourtAvailability();
+    };
+  </script>
+</body>
+</html>
